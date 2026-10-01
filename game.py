@@ -63,7 +63,19 @@ class Game:
 
     def step(self):
         new_head = self.next_head()
+
+        # Wall collision check
+        x, y = new_head
+        if x < 0 or x >= self.width or y < 0 or y >= self.height:
+            return False
+
+        # Self collision check: snake tail moves forward on normal step,
+        # so check against body excluding the tail that leaves this turn
+        if new_head in self.snake.body[1:]:
+            return False
+
         self.snake.take_step(new_head)
+        return True
 
     def play(self):
         controls = {
@@ -97,7 +109,11 @@ class Game:
                 if desired_dir != opposites[self.snake.direction]:
                     self.snake.set_direction(desired_dir)
 
-            self.step()
+            alive = self.step()
+            if not alive:
+                self.render()
+                print("\n💥 CRASH! Game Over. My condolences to your snake.")
+                break
 
 
 if __name__ == "__main__":
