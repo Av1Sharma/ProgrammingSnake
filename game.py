@@ -28,20 +28,17 @@ class Game:
     def __init__(self, height, width):
         self.height = height
         self.width = width
-        # Hardcode initial snake position and direction
         self.snake = Snake([(0, 0), (1, 0), (2, 0), (3, 0)], RIGHT)
 
     def board_matrix(self):
         matrix = [[None for _ in range(self.width)] for _ in range(self.height)]
 
-        # Place snake body
         for x, y in self.snake.body:
             row = self.height - 1 - y
             col = x
             if 0 <= row < self.height and 0 <= col < self.width:
                 matrix[row][col] = "O"
 
-        # Place snake head
         hx, hy = self.snake.head()
         h_row = self.height - 1 - hy
         h_col = hx
@@ -53,18 +50,56 @@ class Game:
     def render(self):
         matrix = self.board_matrix()
 
-        # Top border
         print("+" + "-" * self.width + "+")
-
-        # Each row with side borders
         for row in matrix:
             row_str = "".join(" " if cell is None else str(cell) for cell in row)
             print(f"|{row_str}|")
-
-        # Bottom border
         print("+" + "-" * self.width + "+")
+
+    def next_head(self):
+        hx, hy = self.snake.head()
+        dx, dy = self.snake.direction
+        return (hx + dx, hy + dy)
+
+    def step(self):
+        new_head = self.next_head()
+        self.snake.take_step(new_head)
+
+    def play(self):
+        controls = {
+            "w": UP,
+            "s": DOWN,
+            "a": LEFT,
+            "d": RIGHT,
+        }
+
+        opposites = {
+            UP: DOWN,
+            DOWN: UP,
+            LEFT: RIGHT,
+            RIGHT: LEFT,
+        }
+
+        while True:
+            self.render()
+            try:
+                cmd = input("Direction [w/a/s/d or Enter to continue, q to quit]: ").strip().lower()
+            except (EOFError, KeyboardInterrupt):
+                print("\nExiting game.")
+                break
+
+            if cmd == "q":
+                print("Thanks for playing!")
+                break
+
+            if cmd in controls:
+                desired_dir = controls[cmd]
+                if desired_dir != opposites[self.snake.direction]:
+                    self.snake.set_direction(desired_dir)
+
+            self.step()
 
 
 if __name__ == "__main__":
     game = Game(10, 20)
-    game.render()
+    game.play()
